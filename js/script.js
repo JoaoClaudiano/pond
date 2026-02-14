@@ -1,4 +1,6 @@
+// ============================================
 // Estado da aplicação
+// ============================================
 let criteria = [
     { id: 'c0', name: 'Preço', weight: 25 },
     { id: 'c1', name: 'Localização', weight: 20 },
@@ -29,7 +31,9 @@ function initScores() {
 }
 initScores();
 
+// ============================================
 // Elementos DOM
+// ============================================
 const criteriaListDiv = document.getElementById('criteria-list');
 const terrainsListDiv = document.getElementById('terrains-list');
 const scoresThead = document.getElementById('scores-thead');
@@ -40,25 +44,192 @@ const addTerrainBtn = document.getElementById('add-terrain');
 const exportPdfBtn = document.getElementById('export-pdf');
 const exportXlsxBtn = document.getElementById('export-xlsx');
 const weightWarning = document.getElementById('weight-warning');
+
+// Abas
 const tabLearn = document.getElementById('tab-learn');
 const tabSimulator = document.getElementById('tab-simulator');
+const tabGuide = document.getElementById('tab-guide');
+const tabExamples = document.getElementById('tab-examples');
 const learnContent = document.getElementById('learn-content');
 const simulatorContent = document.getElementById('simulator-content');
+const guideContent = document.getElementById('guide-content');
+const examplesContent = document.getElementById('examples-content');
+
+// Botões de exemplo
+const loadExample1Btn = document.getElementById('load-example-1');
+const loadExample2Btn = document.getElementById('load-example-2');
+
+// Botão de tour
+const startTourBtn = document.getElementById('start-tour');
 
 // Gráficos
 let barChart, radarChart;
 
-// Utilitário de ID
+// ============================================
+// Utilitários
+// ============================================
 function generateId(prefix) {
     return prefix + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
 }
 
-// Feather Icons - atualiza após mudanças no DOM
 function refreshFeather() {
     if (typeof feather !== 'undefined') {
         feather.replace();
     }
 }
+
+// ============================================
+// Gerenciamento de abas
+// ============================================
+function activateTab(tabId) {
+    // Remove active de todas as abas e conteúdos
+    [tabLearn, tabSimulator, tabGuide, tabExamples].forEach(t => t.classList.remove('active'));
+    [learnContent, simulatorContent, guideContent, examplesContent].forEach(c => c.classList.remove('active'));
+
+    // Ativa a selecionada
+    if (tabId === 'learn') {
+        tabLearn.classList.add('active');
+        learnContent.classList.add('active');
+    } else if (tabId === 'simulator') {
+        tabSimulator.classList.add('active');
+        simulatorContent.classList.add('active');
+        // Pequeno atraso para garantir que os gráficos sejam renderizados
+        setTimeout(() => {
+            updateChartsAndRanking();
+            refreshFeather();
+        }, 100);
+    } else if (tabId === 'guide') {
+        tabGuide.classList.add('active');
+        guideContent.classList.add('active');
+    } else if (tabId === 'examples') {
+        tabExamples.classList.add('active');
+        examplesContent.classList.add('active');
+    }
+    refreshFeather();
+}
+
+tabLearn.addEventListener('click', () => activateTab('learn'));
+tabSimulator.addEventListener('click', () => activateTab('simulator'));
+tabGuide.addEventListener('click', () => activateTab('guide'));
+tabExamples.addEventListener('click', () => activateTab('examples'));
+
+// ============================================
+// Tour interativo
+// ============================================
+if (startTourBtn) {
+    startTourBtn.addEventListener('click', () => {
+        introJs().setOptions({
+            steps: [
+                {
+                    title: 'Bem-vindo ao PonderaCivil',
+                    intro: 'Este tour vai te ajudar a conhecer as principais funcionalidades.'
+                },
+                {
+                    element: document.querySelector('.tabs'),
+                    title: 'Abas',
+                    intro: 'Navegue entre as abas: Aprender (teoria), Simulador (ferramenta), Guia de Uso e Exemplos.'
+                },
+                {
+                    element: document.querySelector('#simulator-content .manager-panel:first-child'),
+                    title: 'Critérios',
+                    intro: 'Aqui você gerencia os critérios: adiciona, remove, define pesos e edita nomes.'
+                },
+                {
+                    element: document.querySelector('#simulator-content .manager-panel:last-child'),
+                    title: 'Terrenos',
+                    intro: 'Gerencie os terrenos (opções) da mesma forma.'
+                },
+                {
+                    element: document.querySelector('.scores-panel'),
+                    title: 'Tabela de notas',
+                    intro: 'Atribua notas de 0 a 10 para cada par critério-terreno. Os gráficos atualizam em tempo real.'
+                },
+                {
+                    element: document.querySelector('.results-panel'),
+                    title: 'Resultados',
+                    intro: 'Veja a pontuação final e compare os perfis nos gráficos. Exporte PDF ou Excel.'
+                }
+            ],
+            showProgress: true,
+            showBullets: false,
+            exitOnOverlayClick: true
+        }).start();
+    });
+}
+
+// ============================================
+// Exemplos práticos
+// ============================================
+function loadExample1() {
+    // Exemplo 1: Terrenos com preços (normalização)
+    criteria = [
+        { id: 'c0', name: 'Preço (menor melhor)', weight: 50 },
+        { id: 'c1', name: 'Localização', weight: 30 },
+        { id: 'c2', name: 'Topografia', weight: 20 }
+    ];
+    terrains = [
+        { id: 't0', name: 'A' },
+        { id: 't1', name: 'B' }
+    ];
+    // Inicializar scores com notas (já normalizadas)
+    scores = {};
+    criteria.forEach(c => {
+        scores[c.id] = {};
+        terrains.forEach(t => {
+            if (c.id === 'c0') { // preço: menor melhor → normalizado
+                // Valores brutos: A=1300, B=1700 → min=1300, max=1700
+                // Nota A = 10, B = 0
+                scores[c.id][t.id] = (t.id === 't0') ? 10 : 0;
+            } else if (c.id === 'c1') { // localização
+                scores[c.id][t.id] = (t.id === 't0') ? 8 : 9;
+            } else { // topografia
+                scores[c.id][t.id] = (t.id === 't0') ? 7 : 6;
+            }
+        });
+    });
+    activateTab('simulator');
+    updateAll();
+}
+
+function loadExample2() {
+    // Exemplo 2: Escolha de fundação
+    criteria = [
+        { id: 'c0', name: 'Custo', weight: 40 },
+        { id: 'c1', name: 'Rapidez', weight: 30 },
+        { id: 'c2', name: 'Segurança', weight: 30 }
+    ];
+    terrains = [
+        { id: 't0', name: 'Estaca' },
+        { id: 't1', name: 'Sapata' },
+        { id: 't2', name: 'Radier' }
+    ];
+    scores = {};
+    criteria.forEach(c => {
+        scores[c.id] = {};
+        terrains.forEach(t => {
+            if (c.id === 'c0') { // custo
+                scores[c.id][t.id] = (t.id === 't0') ? 6 : (t.id === 't1' ? 8 : 7);
+            } else if (c.id === 'c1') { // rapidez
+                scores[c.id][t.id] = (t.id === 't0') ? 5 : (t.id === 't1' ? 9 : 8);
+            } else { // segurança
+                scores[c.id][t.id] = (t.id === 't0') ? 9 : (t.id === 't1' ? 7 : 6);
+            }
+        });
+    });
+    activateTab('simulator');
+    updateAll();
+}
+
+if (loadExample1Btn) {
+    loadExample1Btn.addEventListener('click', loadExample1);
+}
+if (loadExample2Btn) {
+    loadExample2Btn.addEventListener('click', loadExample2);
+}
+
+// ============================================
+// Funções principais do simulador
+// ============================================
 
 // Renderiza lista de critérios com edição inline
 function renderCriteria() {
@@ -83,7 +254,6 @@ function renderCriteria() {
             const criterion = criteria.find(c => c.id === id);
             if (criterion) {
                 criterion.weight = newWeight;
-                // validação visual
                 if (newWeight < 0 || newWeight > 100) {
                     this.classList.add('error');
                 } else {
@@ -103,7 +273,6 @@ function renderCriteria() {
             const nameSpan = row.querySelector('.item-name');
             const currentName = nameSpan.innerText;
 
-            // Substitui o span por um input
             const input = document.createElement('input');
             input.type = 'text';
             input.value = currentName;
@@ -119,12 +288,11 @@ function renderCriteria() {
                     const criterion = criteria.find(c => c.id === id);
                     if (criterion) criterion.name = newName;
                 }
-                // Volta ao span
                 const newSpan = document.createElement('span');
                 newSpan.className = 'item-name';
                 newSpan.innerText = newName || currentName;
                 input.replaceWith(newSpan);
-                renderScoresTable(); // atualiza tabela
+                renderScoresTable();
                 updateChartsAndRanking();
                 refreshFeather();
             };
@@ -413,7 +581,9 @@ function updateAll() {
     updateChartsAndRanking();
 }
 
-// Exportar PDF (já existente, mantido)
+// ============================================
+// Exportação PDF
+// ============================================
 async function exportToPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('p', 'mm', 'a4');
@@ -423,7 +593,6 @@ async function exportToPDF() {
     doc.setFontSize(10);
     doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, 20, 30);
 
-    // Critérios e pesos
     doc.setFontSize(12);
     doc.text('Critérios e Pesos:', 20, 40);
     let y = 48;
@@ -432,7 +601,6 @@ async function exportToPDF() {
         y += 6;
     });
 
-    // Tabela de notas
     y += 10;
     doc.text('Notas atribuídas (0-10):', 20, y);
     y += 8;
@@ -451,7 +619,6 @@ async function exportToPDF() {
         headStyles: { fillColor: [59, 130, 246] }
     });
 
-    // Pontuações finais
     const finalScores = calculateFinalScores();
     y = doc.lastAutoTable.finalY + 10;
     doc.text('Pontuação final (ponderada):', 20, y);
@@ -464,18 +631,17 @@ async function exportToPDF() {
     doc.save('analise_ponderada.pdf');
 }
 
-// Exportar XLSX
+// ============================================
+// Exportação XLSX
+// ============================================
 function exportToXLSX() {
-    // Criar uma planilha com múltiplas abas
     const wb = XLSX.utils.book_new();
 
-    // Aba 1: Critérios e pesos
     const criteriaData = [['Critério', 'Peso (%)']];
     criteria.forEach(c => criteriaData.push([c.name, c.weight]));
     const wsCriteria = XLSX.utils.aoa_to_sheet(criteriaData);
     XLSX.utils.book_append_sheet(wb, wsCriteria, 'Critérios');
 
-    // Aba 2: Notas
     const notesData = [['Critério', ...terrains.map(t => t.name)]];
     criteria.forEach(c => {
         const row = [c.name, ...terrains.map(t => scores[c.id]?.[t.id] ?? 5)];
@@ -484,38 +650,18 @@ function exportToXLSX() {
     const wsNotes = XLSX.utils.aoa_to_sheet(notesData);
     XLSX.utils.book_append_sheet(wb, wsNotes, 'Notas');
 
-    // Aba 3: Pontuação final
     const finalScores = calculateFinalScores();
     const finalData = [['Terreno', 'Pontuação']];
     terrains.forEach(t => finalData.push([t.name, finalScores[t.id].score]));
     const wsFinal = XLSX.utils.aoa_to_sheet(finalData);
     XLSX.utils.book_append_sheet(wb, wsFinal, 'Resultado');
 
-    // Exportar
     XLSX.writeFile(wb, 'analise_ponderada.xlsx');
 }
 
-// Eventos de abas
-tabLearn.addEventListener('click', () => {
-    tabLearn.classList.add('active');
-    tabSimulator.classList.remove('active');
-    learnContent.classList.add('active');
-    simulatorContent.classList.remove('active');
-    refreshFeather();
-});
-
-tabSimulator.addEventListener('click', () => {
-    tabSimulator.classList.add('active');
-    tabLearn.classList.remove('active');
-    simulatorContent.classList.add('active');
-    learnContent.classList.remove('active');
-    setTimeout(() => {
-        updateChartsAndRanking();
-        refreshFeather();
-    }, 100);
-});
-
+// ============================================
 // Event listeners principais
+// ============================================
 addCriterionBtn.addEventListener('click', addCriterion);
 addTerrainBtn.addEventListener('click', addTerrain);
 exportPdfBtn.addEventListener('click', exportToPDF);
