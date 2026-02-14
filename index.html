@@ -19,18 +19,24 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
     <!-- Nosso CSS -->
     <link rel="stylesheet" href="css/style.css">
+    <!-- Intro.js para tour -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intro.js@5.1.0/minified/introjs.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/intro.js@5.1.0/minified/intro.min.js"></script>
 </head>
 <body>
     <div class="app-container">
         <header>
             <h1><i data-feather="layers"></i> Pondera<span class="accent">Civil</span></h1>
             <p class="subtitle">Decisões técnicas com clareza e método</p>
+            <button id="start-tour" class="btn btn-secondary" style="margin-top: 0.5rem;" title="Tour guiado pelo site"><i data-feather="compass"></i> Tour</button>
         </header>
 
         <!-- Abas -->
         <div class="tabs">
             <button class="tab-btn active" id="tab-learn"><i data-feather="book-open"></i> Aprender</button>
             <button class="tab-btn" id="tab-simulator"><i data-feather="tool"></i> Simulador</button>
+            <button class="tab-btn" id="tab-guide"><i data-feather="help-circle"></i> Guia de Uso</button>
+            <button class="tab-btn" id="tab-examples"><i data-feather="folder"></i> Exemplos</button>
         </div>
 
         <!-- Conteúdo da aba Aprender -->
@@ -138,6 +144,59 @@
                         <button id="export-pdf" class="btn btn-primary" title="Exportar relatório em PDF"><i data-feather="file-text"></i> PDF</button>
                         <button id="export-xlsx" class="btn btn-primary" title="Exportar dados para Excel"><i data-feather="file"></i> Excel (XLSX)</button>
                     </div>
+                </div>
+            </section>
+        </div>
+        <!-- Conteúdo da aba Guia de Uso -->
+        <div id="guide-content" class="tab-content">
+            <section class="guide-section">
+                <h2><i data-feather="help-circle"></i> Guia de Uso</h2>
+                <div class="card">
+                    <h3>Passo a passo</h3>
+                    <ol>
+                        <li><strong>Defina os critérios</strong> – Adicione ou remova critérios relevantes para sua decisão (ex: preço, localização).</li>
+                        <li><strong>Atribua pesos</strong> – Dê a importância de cada critério (a soma deve ser 100%).</li>
+                        <li><strong>Cadastre os terrenos</strong> – Nomeie cada opção (ex: Terreno A, Lote 5).</li>
+                        <li><strong>Atribua notas</strong> – Para cada critério e terreno, dê uma nota de 0 a 10. Você pode usar valores brutos e normalizar (veja exemplos).</li>
+                        <li><strong>Analise os resultados</strong> – O gráfico de barras mostra a pontuação final; o radar compara os perfis.</li>
+                        <li><strong>Exporte</strong> – Gere um relatório em PDF ou planilha Excel.</li>
+                    </ol>
+                </div>
+                <div class="card">
+                    <h3><i data-feather="bar-chart-2"></i> Interpretação dos gráficos</h3>
+                    <p><strong>Gráfico de barras:</strong> Quanto maior a barra, melhor a opção segundo seus pesos.</p>
+                    <p><strong>Gráfico radar:</strong> Mostra o desempenho em cada critério. Um polígono mais "cheio" indica equilíbrio.</p>
+                </div>
+                <div class="card">
+                    <h3><i data-feather="rotate-cw"></i> Normalização de valores</h3>
+                    <p>Se você tem valores brutos (ex: preço em R$/m²), pode convertê-los para notas de 0 a 10 automaticamente. Na aba <strong>Exemplos</strong> há uma demonstração.</p>
+                </div>
+            </section>
+        </div>
+        
+        <!-- Conteúdo da aba Exemplos -->
+        <div id="examples-content" class="tab-content">
+            <section class="examples-section">
+                <h2><i data-feather="folder"></i> Exemplos Práticos</h2>
+                <div class="card">
+                    <h3>Exemplo 1: Compra de terreno (com normalização)</h3>
+                    <p>Critérios: Preço (menor melhor), Localização (maior melhor), Topografia (maior melhor).</p>
+                    <p><strong>Valores brutos:</strong></p>
+                    <ul>
+                        <li>Terreno A: Preço R$ 1300/m², Localização 8 (nota subjetiva), Topografia 7</li>
+                        <li>Terreno B: Preço R$ 1700/m², Localização 9, Topografia 6</li>
+                    </ul>
+                    <p>Após normalização do preço (min 1300, max 1700), as notas viram:</p>
+                    <ul>
+                        <li>Terreno A: Preço = 10, Localização 8, Topografia 7 → ponderado (ex: pesos 50%,30%,20%) = 8,9</li>
+                        <li>Terreno B: Preço = 0, Localização 9, Topografia 6 → ponderado = 3,9</li>
+                    </ul>
+                    <button id="load-example-1" class="btn btn-secondary"><i data-feather="upload"></i> Carregar este exemplo</button>
+                </div>
+                <div class="card">
+                    <h3>Exemplo 2: Escolha de fundação</h3>
+                    <p>Comparação entre Estaca, Sapata e Radier com critérios: Custo, Rapidez, Segurança.</p>
+                    <button id="load-example-2" class="btn btn-secondary"><i data-feather="upload"></i> Carregar este exemplo</button>
                 </div>
             </section>
         </div>
