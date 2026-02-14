@@ -2,104 +2,141 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PonderaCivil · Método da Pontuação Ponderada</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>PonderaCivil · Aprenda e simule</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <!-- html2canvas e jsPDF para PDF -->
+    <!-- html2canvas e jsPDF (para PDF) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+    <!-- Nosso CSS -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <div class="container">
+    <div class="app-container">
         <header>
             <h1>🧱 Pondera<span class="accent">Civil</span></h1>
-            <p class="subtitle">Tome decisões técnicas com clareza — método da pontuação ponderada para engenharia.</p>
+            <p class="subtitle">Decisões técnicas com clareza e método</p>
         </header>
 
-        <section class="theory">
-            <h2>Como funciona?</h2>
-            <div class="steps">
-                <div class="step">
-                    <span class="step-number">1</span>
-                    <h3>Critérios & Pesos</h3>
-                    <p>Defina critérios (ex: preço, localização) e atribua pesos.</p>
-                </div>
-                <div class="step">
-                    <span class="step-number">2</span>
-                    <h3>Notas</h3>
-                    <p>Avalie cada terreno em cada critério com nota de 0 a 10.</p>
-                </div>
-                <div class="step">
-                    <span class="step-number">3</span>
-                    <h3>Resultado</h3>
-                    <p>A melhor escolha é revelada pela soma ponderada.</p>
-                </div>
-            </div>
-        </section>
+        <!-- Abas -->
+        <div class="tabs">
+            <button class="tab-btn active" id="tab-learn">📘 Aprender</button>
+            <button class="tab-btn" id="tab-simulator">📐 Simulador</button>
+        </div>
 
-        <section class="simulator">
-            <h2>📐 Simulador dinâmico</h2>
-            <p class="simulator-intro">Adicione ou remova critérios e terrenos livremente.</p>
-
-            <!-- Painel de gerenciamento de critérios -->
-            <div class="criteria-manager">
-                <h3>Critérios</h3>
-                <div id="criteria-list" class="criteria-list">
-                    <!-- Será preenchido via JS -->
+        <!-- Conteúdo da aba Aprender -->
+        <div id="learn-content" class="tab-content active">
+            <section class="learn-section">
+                <h2>O que é o método da pontuação ponderada?</h2>
+                <p>É uma técnica de análise multicritério que ajuda a escolher a melhor opção quando vários fatores (às vezes conflitantes) precisam ser considerados. Na engenharia civil, é muito usado para selecionar terrenos, materiais, fornecedores ou alternativas de projeto.</p>
+                
+                <div class="card">
+                    <h3>⚖️ Pesos: a importância de cada critério</h3>
+                    <p>Os pesos representam o quanto cada critério é importante para você. A soma de todos os pesos deve ser <strong>100%</strong>. Por exemplo, se o preço é muito importante, pode ter peso 40%; se a localização é menos relevante, 10%.</p>
+                    <p><em>Dica: Use a experiência da equipe ou dados históricos para definir pesos realistas.</em></p>
                 </div>
-                <button id="add-criterion" class="btn btn-secondary">➕ Adicionar critério</button>
-            </div>
 
-            <!-- Painel de gerenciamento de terrenos -->
-            <div class="terrains-manager">
-                <h3>Terrenos</h3>
-                <div id="terrains-list" class="terrains-list">
-                    <!-- Será preenchido via JS -->
+                <div class="card">
+                    <h3>📊 Notas: avaliando cada opção</h3>
+                    <p>Para cada critério, dê uma nota de <strong>0 a 10</strong> para cada terreno/opção. 0 significa péssimo, 10 significa excelente. As notas devem ser baseadas em dados objetivos (ex: custo por m²) ou em avaliações técnicas (ex: tipo de solo).</p>
                 </div>
-                <button id="add-terrain" class="btn btn-secondary">➕ Adicionar terreno</button>
-            </div>
 
-            <!-- Tabela de notas -->
-            <div class="scores-panel">
-                <h3>Notas (0 a 10)</h3>
-                <div class="scores-table-wrapper">
-                    <table id="scores-table">
-                        <thead id="scores-thead">
-                            <!-- Cabeçalho gerado dinamicamente -->
-                        </thead>
-                        <tbody id="scores-tbody">
-                            <!-- Linhas geradas dinamicamente -->
-                        </tbody>
-                    </table>
+                <div class="card">
+                    <h3>🧮 Cálculo da pontuação final</h3>
+                    <p>Multiplica-se a nota de cada critério pelo seu peso (em decimal) e soma-se tudo. A opção com maior pontuação é a mais alinhada com suas prioridades.</p>
+                    <p><strong>Exemplo:</strong> Se o critério "Preço" tem peso 30% e nota 8, contribui com 0,3 × 8 = 2,4 pontos na soma final.</p>
                 </div>
-            </div>
 
-            <!-- Resultados -->
-            <div class="results-panel">
-                <h3>Resultado da Ponderação</h3>
-                <div class="ranking">
-                    <h4>Pontuação final</h4>
-                    <div id="ranking-list" class="ranking-list"></div>
+                <div class="card">
+                    <h3>📈 Interpretando os resultados</h3>
+                    <p>O gráfico de barras mostra a pontuação final de cada terreno. O gráfico radar (teia) permite comparar o desempenho em cada critério — útil para identificar pontos fortes e fracos.</p>
                 </div>
-                <div class="charts">
-                    <div class="chart-container">
-                        <canvas id="bar-chart"></canvas>
+
+                <div class="card">
+                    <h3>🏗️ Aplicações na engenharia civil</h3>
+                    <ul>
+                        <li>Escolha de terrenos (preço, localização, solo, topografia, legislação)</li>
+                        <li>Seleção de fundações (custo, rapidez, segurança)</li>
+                        <li>Comparação de materiais (custo, durabilidade, disponibilidade)</li>
+                        <li>Contratação de empreiteiras (preço, prazo, qualidade)</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>📱 Como usar o simulador</h3>
+                    <ol>
+                        <li>Na aba <strong>Simulador</strong>, você pode adicionar ou remover critérios e terrenos.</li>
+                        <li>Defina os <strong>pesos</strong> (em %) para cada critério. A soma deve ser 100%.</li>
+                        <li>Atribua <strong>notas</strong> de 0 a 10 para cada par critério-terreno.</li>
+                        <li>Os gráficos e o ranking atualizam automaticamente.</li>
+                        <li>Você pode <strong>editar os nomes</strong> clicando no ícone ✏️ ao lado de cada critério ou terreno.</li>
+                        <li>Exporte um <strong>relatório em PDF</strong> com os dados da análise.</li>
+                    </ol>
+                </div>
+            </section>
+        </div>
+
+        <!-- Conteúdo da aba Simulador -->
+        <div id="simulator-content" class="tab-content">
+            <section class="simulator">
+                <h2>📐 Simulador dinâmico</h2>
+                <p class="simulator-intro">Adicione, remova ou edite critérios e terrenos. Ajuste pesos e notas.</p>
+
+                <!-- Painel de gerenciamento de critérios -->
+                <div class="manager-panel">
+                    <h3>📋 Critérios</h3>
+                    <div id="criteria-list" class="dynamic-list"></div>
+                    <button id="add-criterion" class="btn btn-secondary">➕ Adicionar critério</button>
+                </div>
+
+                <!-- Painel de gerenciamento de terrenos -->
+                <div class="manager-panel">
+                    <h3>🗺️ Terrenos</h3>
+                    <div id="terrains-list" class="dynamic-list"></div>
+                    <button id="add-terrain" class="btn btn-secondary">➕ Adicionar terreno</button>
+                </div>
+
+                <!-- Aviso de soma dos pesos -->
+                <div id="weight-warning" class="warning hidden"></div>
+
+                <!-- Tabela de notas -->
+                <div class="scores-panel">
+                    <h3>📝 Notas (0 a 10)</h3>
+                    <div class="scores-table-wrapper">
+                        <table id="scores-table">
+                            <thead id="scores-thead"></thead>
+                            <tbody id="scores-tbody"></tbody>
+                        </table>
                     </div>
-                    <div class="chart-container">
-                        <canvas id="radar-chart"></canvas>
-                    </div>
                 </div>
-                <button id="export-pdf" class="btn btn-primary">📄 Exportar análise em PDF</button>
-            </div>
-        </section>
+
+                <!-- Resultados -->
+                <div class="results-panel">
+                    <h3>📊 Resultado da Ponderação</h3>
+                    <div class="ranking">
+                        <h4>🏆 Pontuação final</h4>
+                        <div id="ranking-list" class="ranking-list"></div>
+                    </div>
+                    <div class="charts">
+                        <div class="chart-container">
+                            <canvas id="bar-chart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="radar-chart"></canvas>
+                        </div>
+                    </div>
+                    <button id="export-pdf" class="btn btn-primary">📄 Exportar PDF</button>
+                </div>
+            </section>
+        </div>
 
         <footer>
-            <p>© 2026 PonderaCivil · Ferramenta livre para engenheiros e estudantes</p>
+            <p>© 2026 PonderaCivil · Ferramenta livre e educativa</p>
         </footer>
     </div>
 
