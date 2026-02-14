@@ -3,163 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pondera Civil · Método da Pontuação Ponderada</title>
-    <!-- Fonte moderna -->
+    <title>PonderaCivil · Método da Pontuação Ponderada</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
-    <!-- Chart.js para gráficos -->
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <!-- Nosso CSS -->
+    <!-- html2canvas e jsPDF para PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div class="container">
-        <!-- CABEÇALHO -->
         <header>
             <h1>🧱 Pondera<span class="accent">Civil</span></h1>
             <p class="subtitle">Tome decisões técnicas com clareza — método da pontuação ponderada para engenharia.</p>
         </header>
 
-        <!-- EXPLICAÇÃO RÁPIDA DO MÉTODO -->
         <section class="theory">
             <h2>Como funciona?</h2>
             <div class="steps">
                 <div class="step">
                     <span class="step-number">1</span>
                     <h3>Critérios & Pesos</h3>
-                    <p>Defina o que é importante (ex: preço, localização) e atribua pesos de acordo com a prioridade.</p>
+                    <p>Defina critérios (ex: preço, localização) e atribua pesos.</p>
                 </div>
                 <div class="step">
                     <span class="step-number">2</span>
                     <h3>Notas</h3>
-                    <p>Avalie cada terreno (ou opção) em cada critério com uma nota de 0 a 10.</p>
+                    <p>Avalie cada terreno em cada critério com nota de 0 a 10.</p>
                 </div>
                 <div class="step">
                     <span class="step-number">3</span>
                     <h3>Resultado</h3>
-                    <p>A multiplicação das notas pelos pesos revela a melhor escolha de forma objetiva.</p>
+                    <p>A melhor escolha é revelada pela soma ponderada.</p>
                 </div>
             </div>
         </section>
 
-        <!-- SIMULADOR DE COMPRA DE TERRENOS -->
         <section class="simulator">
-            <h2>📐 Simulador: Escolha do Terreno</h2>
-            <p class="simulator-intro">Ajuste os pesos dos critérios e dê notas para até 4 terrenos. O gráfico atualiza em tempo real.</p>
+            <h2>📐 Simulador dinâmico</h2>
+            <p class="simulator-intro">Adicione ou remova critérios e terrenos livremente.</p>
 
-            <!-- Configuração dos pesos -->
-            <div class="weights-panel">
-                <h3>Pesos dos critérios (soma deve ser 100%)</h3>
-                <div class="weight-sliders">
-                    <!-- Cada slider será gerado pelo JS, mas deixamos a estrutura HTML para facilitar -->
-                    <div class="weight-item" data-criterion="preco">
-                        <label>💰 Preço (R$/m²)</label>
-                        <input type="range" min="0" max="100" value="25" class="weight-slider" id="slider-preco">
-                        <span class="weight-value" id="value-preco">25%</span>
-                    </div>
-                    <div class="weight-item" data-criterion="localizacao">
-                        <label>📍 Localização</label>
-                        <input type="range" min="0" max="100" value="20" class="weight-slider" id="slider-localizacao">
-                        <span class="weight-value" id="value-localizacao">20%</span>
-                    </div>
-                    <div class="weight-item" data-criterion="topografia">
-                        <label>⛰️ Topografia</label>
-                        <input type="range" min="0" max="100" value="15" class="weight-slider" id="slider-topografia">
-                        <span class="weight-value" id="value-topografia">15%</span>
-                    </div>
-                    <div class="weight-item" data-criterion="solo">
-                        <label>🧪 Tipo de solo</label>
-                        <input type="range" min="0" max="100" value="15" class="weight-slider" id="slider-solo">
-                        <span class="weight-value" id="value-solo">15%</span>
-                    </div>
-                    <div class="weight-item" data-criterion="legislacao">
-                        <label>📜 Potencial construtivo</label>
-                        <input type="range" min="0" max="100" value="15" class="weight-slider" id="slider-legislacao">
-                        <span class="weight-value" id="value-legislacao">15%</span>
-                    </div>
-                    <div class="weight-item" data-criterion="infra">
-                        <label>⚡ Infraestrutura</label>
-                        <input type="range" min="0" max="100" value="10" class="weight-slider" id="slider-infra">
-                        <span class="weight-value" id="value-infra">10%</span>
-                    </div>
+            <!-- Painel de gerenciamento de critérios -->
+            <div class="criteria-manager">
+                <h3>Critérios</h3>
+                <div id="criteria-list" class="criteria-list">
+                    <!-- Será preenchido via JS -->
                 </div>
-                <div class="total-weight">
-                    <span>Total: <span id="total-weights">100</span>%</span>
-                    <span id="weight-warning" class="warning hidden">A soma deve ser 100%</span>
-                </div>
+                <button id="add-criterion" class="btn btn-secondary">➕ Adicionar critério</button>
             </div>
 
-            <!-- Notas dos terrenos -->
+            <!-- Painel de gerenciamento de terrenos -->
+            <div class="terrains-manager">
+                <h3>Terrenos</h3>
+                <div id="terrains-list" class="terrains-list">
+                    <!-- Será preenchido via JS -->
+                </div>
+                <button id="add-terrain" class="btn btn-secondary">➕ Adicionar terreno</button>
+            </div>
+
+            <!-- Tabela de notas -->
             <div class="scores-panel">
-                <h3>Notas (0 a 10) para cada terreno</h3>
-                <div class="scores-table">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Critério</th>
-                                <th>Terreno A</th>
-                                <th>Terreno B</th>
-                                <th>Terreno C</th>
-                                <th>Terreno D</th>
-                            </tr>
+                <h3>Notas (0 a 10)</h3>
+                <div class="scores-table-wrapper">
+                    <table id="scores-table">
+                        <thead id="scores-thead">
+                            <!-- Cabeçalho gerado dinamicamente -->
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td>💰 Preço</td>
-                                <td><input type="number" min="0" max="10" step="0.1" value="8" class="score-input" data-terrain="A" data-criterion="preco"></td>
-                                <td><input type="number" min="0" max="10" step="0.1" value="5" class="score-input" data-terrain="B" data-criterion="preco"></td>
-                                <td><input type="number" min="0" max="10" step="0.1" value="9" class="score-input" data-terrain="C" data-criterion="preco"></td>
-                                <td><input type="number" min="0" max="10" step="0.1" value="7" class="score-input" data-terrain="D" data-criterion="preco"></td>
-                            </tr>
-                            <tr>
-                                <td>📍 Localização</td>
-                                <td><input type="number" min="0" max="10" step="0.1" value="9" class="score-input" data-terrain="A" data-criterion="localizacao"></td>
-                                <td><input type="number" min="0" max="10" step="0.1" value="8" class="score-input" data-terrain="B" data-criterion="localizacao"></td>
-                                <td><input type="number" min="0" max="10" step="0.1" value="4" class="score-input" data-terrain="C" data-criterion="localizacao"></td>
-                                <td><input type="number" min="0" max="10" step="0.1" value="6" class="score-input" data-terrain="D" data-criterion="localizacao"></td>
-                            </tr>
-                            <tr>
-                                <td>⛰️ Topografia</td>
-                                <td><input type="number" min="0" max="10" step="0.1" value="7" class="score-input" data-terrain="A" data-criterion="topografia"></td>
-                                <td><input type="number" min="0" max="10" step="0.1" value="6" class="score-input" data-terrain="B" data-criterion="topografia"></td>
-                                <td><input type="number" min="0" max="10" step="0.1" value="8" class="score-input" data-terrain="C" data-criterion="topografia"></td>
-                                <td><input type="number" min="0" max="10" step="0.1" value="5" class="score-input" data-terrain="D" data-criterion="topografia"></td>
-                            </tr>
-                            <tr>
-                                <td>🧪 Tipo de solo</td>
-                                <td><input type="number" min="0" max="10" step="0.1" value="6" class="score-input" data-terrain="A" data-criterion="solo"></td>
-                                <td><input type="number" min="0" max="10" step="0.1" value="9" class="score-input" data-terrain="B" data-criterion="solo"></td>
-                                <td><input type="number" min="0" max="10" step="0.1" value="7" class="score-input" data-terrain="C" data-criterion="solo"></td>
-                                <td><input type="number" min="0" max="10" step="0.1" value="6" class="score-input" data-terrain="D" data-criterion="solo"></td>
-                            </tr>
-                            <tr>
-                                <td>📜 Potencial construtivo</td>
-                                <td><input type="number" min="0" max="10" step="0.1" value="5" class="score-input" data-terrain="A" data-criterion="legislacao"></td>
-                                <td><input type="number" min="0" max="10" step="0.1" value="7" class="score-input" data-terrain="B" data-criterion="legislacao"></td>
-                                <td><input type="number" min="0" max="10" step="0.1" value="6" class="score-input" data-terrain="C" data-criterion="legislacao"></td>
-                                <td><input type="number" min="0" max="10" step="0.1" value="8" class="score-input" data-terrain="D" data-criterion="legislacao"></td>
-                            </tr>
-                            <tr>
-                                <td>⚡ Infraestrutura</td>
-                                <td><input type="number" min="0" max="10" step="0.1" value="8" class="score-input" data-terrain="A" data-criterion="infra"></td>
-                                <td><input type="number" min="0" max="10" step="0.1" value="6" class="score-input" data-terrain="B" data-criterion="infra"></td>
-                                <td><input type="number" min="0" max="10" step="0.1" value="5" class="score-input" data-terrain="C" data-criterion="infra"></td>
-                                <td><input type="number" min="0" max="10" step="0.1" value="7" class="score-input" data-terrain="D" data-criterion="infra"></td>
-                            </tr>
+                        <tbody id="scores-tbody">
+                            <!-- Linhas geradas dinamicamente -->
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- RESULTADOS: Gráficos e ranking -->
+            <!-- Resultados -->
             <div class="results-panel">
                 <h3>Resultado da Ponderação</h3>
                 <div class="ranking">
                     <h4>Pontuação final</h4>
-                    <div id="ranking-list" class="ranking-list">
-                        <!-- Preenchido via JS -->
-                    </div>
+                    <div id="ranking-list" class="ranking-list"></div>
                 </div>
                 <div class="charts">
                     <div class="chart-container">
@@ -169,6 +94,7 @@
                         <canvas id="radar-chart"></canvas>
                     </div>
                 </div>
+                <button id="export-pdf" class="btn btn-primary">📄 Exportar análise em PDF</button>
             </div>
         </section>
 
@@ -177,7 +103,6 @@
         </footer>
     </div>
 
-    <!-- Nosso script -->
     <script src="js/script.js"></script>
 </body>
 </html>
