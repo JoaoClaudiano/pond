@@ -2,12 +2,12 @@
 // Estado da aplicação
 // ============================================
 let criteria = [
-    { id: 'c0', name: 'Preço', weight: 25 },
-    { id: 'c1', name: 'Localização', weight: 20 },
-    { id: 'c2', name: 'Topografia', weight: 15 },
-    { id: 'c3', name: 'Tipo de solo', weight: 15 },
-    { id: 'c4', name: 'Potencial construtivo', weight: 15 },
-    { id: 'c5', name: 'Infraestrutura', weight: 10 }
+    { id: 'c0', name: 'Preço', weight: 25, normalization: { mode: 'manual' } },
+    { id: 'c1', name: 'Localização', weight: 20, normalization: { mode: 'manual' } },
+    { id: 'c2', name: 'Topografia', weight: 15, normalization: { mode: 'manual' } },
+    { id: 'c3', name: 'Tipo de solo', weight: 15, normalization: { mode: 'manual' } },
+    { id: 'c4', name: 'Potencial construtivo', weight: 15, normalization: { mode: 'manual' } },
+    { id: 'c5', name: 'Infraestrutura', weight: 10, normalization: { mode: 'manual' } }
 ];
 
 let terrains = [
@@ -17,19 +17,25 @@ let terrains = [
     { id: 't3', name: 'D' }
 ];
 
-// Notas: scores[criterionId][terrainId] = nota
+// Notas calculadas (0-10)
 let scores = {};
 
-function initScores() {
+// Valores brutos para critérios normalizados
+let rawValues = {};
+
+function initScoresAndRaw() {
     scores = {};
+    rawValues = {};
     criteria.forEach(c => {
         scores[c.id] = {};
+        rawValues[c.id] = {};
         terrains.forEach(t => {
-            scores[c.id][t.id] = 5; // valor padrão
+            scores[c.id][t.id] = 5; // nota padrão
+            rawValues[c.id][t.id] = 0; // valor bruto padrão
         });
     });
 }
-initScores();
+initScoresAndRaw();
 
 // ============================================
 // Elementos DOM
@@ -82,18 +88,15 @@ function refreshFeather() {
 // Gerenciamento de abas
 // ============================================
 function activateTab(tabId) {
-    // Remove active de todas as abas e conteúdos
     [tabLearn, tabSimulator, tabGuide, tabExamples].forEach(t => t.classList.remove('active'));
     [learnContent, simulatorContent, guideContent, examplesContent].forEach(c => c.classList.remove('active'));
 
-    // Ativa a selecionada
     if (tabId === 'learn') {
         tabLearn.classList.add('active');
         learnContent.classList.add('active');
     } else if (tabId === 'simulator') {
         tabSimulator.classList.add('active');
         simulatorContent.classList.add('active');
-        // Pequeno atraso para garantir que os gráficos sejam renderizados
         setTimeout(() => {
             updateChartsAndRanking();
             refreshFeather();
@@ -132,7 +135,7 @@ if (startTourBtn) {
                 {
                     element: document.querySelector('#simulator-content .manager-panel:first-child'),
                     title: 'Critérios',
-                    intro: 'Aqui você gerencia os critérios: adiciona, remove, define pesos e edita nomes.'
+                    intro: 'Aqui você gerencia os critérios: adiciona, remove, define pesos e escolhe o modo de normalização (manual ou valor bruto).'
                 },
                 {
                     element: document.querySelector('#simulator-content .manager-panel:last-child'),
@@ -141,8 +144,8 @@ if (startTourBtn) {
                 },
                 {
                     element: document.querySelector('.scores-panel'),
-                    title: 'Tabela de notas',
-                    intro: 'Atribua notas de 0 a 10 para cada par critério-terreno. Os gráficos atualizam em tempo real.'
+                    title: 'Tabela de notas/valores',
+                    intro: 'Para critérios manuais, insira notas de 0 a 10. Para critérios com normalização, insira valores brutos (ex: preço em R$) e a nota é calculada automaticamente.'
                 },
                 {
                     element: document.querySelector('.results-panel'),
@@ -161,59 +164,65 @@ if (startTourBtn) {
 // Exemplos práticos
 // ============================================
 function loadExample1() {
-    // Exemplo 1: Terrenos com preços (normalização)
+    // Exemplo com normalização de preço
     criteria = [
-        { id: 'c0', name: 'Preço (menor melhor)', weight: 50 },
-        { id: 'c1', name: 'Localização', weight: 30 },
-        { id: 'c2', name: 'Topografia', weight: 20 }
+        { id: 'c0', name: 'Preço (R$/m²)', weight: 50, normalization: { mode: 'raw', direction: 'lower' } },
+        { id: 'c1', name: 'Localização', weight: 30, normalization: { mode: 'manual' } },
+        { id: 'c2', name: 'Topografia', weight: 20, normalization: { mode: 'manual' } }
     ];
     terrains = [
         { id: 't0', name: 'A' },
         { id: 't1', name: 'B' }
     ];
-    // Inicializar scores com notas (já normalizadas)
+    // Inicializar valores brutos
+    rawValues = {};
     scores = {};
     criteria.forEach(c => {
+        rawValues[c.id] = {};
         scores[c.id] = {};
         terrains.forEach(t => {
-            if (c.id === 'c0') { // preço: menor melhor → normalizado
-                // Valores brutos: A=1300, B=1700 → min=1300, max=1700
-                // Nota A = 10, B = 0
-                scores[c.id][t.id] = (t.id === 't0') ? 10 : 0;
-            } else if (c.id === 'c1') { // localização
+            if (c.id === 'c0') {
+                rawValues[c.id][t.id] = (t.id === 't0') ? 1300 : 1700;
+            } else if (c.id === 'c1') {
+                rawValues[c.id][t.id] = 0; // não usado
                 scores[c.id][t.id] = (t.id === 't0') ? 8 : 9;
-            } else { // topografia
+            } else {
+                rawValues[c.id][t.id] = 0;
                 scores[c.id][t.id] = (t.id === 't0') ? 7 : 6;
             }
         });
     });
+    // Recalcular notas do preço
+    recalculateNormalizedScores('c0');
     activateTab('simulator');
     updateAll();
 }
 
 function loadExample2() {
-    // Exemplo 2: Escolha de fundação
     criteria = [
-        { id: 'c0', name: 'Custo', weight: 40 },
-        { id: 'c1', name: 'Rapidez', weight: 30 },
-        { id: 'c2', name: 'Segurança', weight: 30 }
+        { id: 'c0', name: 'Custo', weight: 40, normalization: { mode: 'manual' } },
+        { id: 'c1', name: 'Rapidez', weight: 30, normalization: { mode: 'manual' } },
+        { id: 'c2', name: 'Segurança', weight: 30, normalization: { mode: 'manual' } }
     ];
     terrains = [
         { id: 't0', name: 'Estaca' },
         { id: 't1', name: 'Sapata' },
         { id: 't2', name: 'Radier' }
     ];
+    rawValues = {};
     scores = {};
     criteria.forEach(c => {
+        rawValues[c.id] = {};
         scores[c.id] = {};
         terrains.forEach(t => {
-            if (c.id === 'c0') { // custo
+            if (c.id === 'c0') {
                 scores[c.id][t.id] = (t.id === 't0') ? 6 : (t.id === 't1' ? 8 : 7);
-            } else if (c.id === 'c1') { // rapidez
+            } else if (c.id === 'c1') {
                 scores[c.id][t.id] = (t.id === 't0') ? 5 : (t.id === 't1' ? 9 : 8);
-            } else { // segurança
+            } else {
                 scores[c.id][t.id] = (t.id === 't0') ? 9 : (t.id === 't1' ? 7 : 6);
             }
+            rawValues[c.id][t.id] = 0; // não usado
         });
     });
     activateTab('simulator');
@@ -228,18 +237,59 @@ if (loadExample2Btn) {
 }
 
 // ============================================
-// Funções principais do simulador
+// Funções de normalização
 // ============================================
+function recalculateNormalizedScores(criterionId) {
+    const criterion = criteria.find(c => c.id === criterionId);
+    if (!criterion || criterion.normalization.mode !== 'raw') return;
 
-// Renderiza lista de critérios com edição inline
+    const direction = criterion.normalization.direction; // 'lower' ou 'higher'
+    const values = [];
+    terrains.forEach(t => {
+        const val = rawValues[criterionId][t.id];
+        if (val !== undefined && !isNaN(val)) {
+            values.push(val);
+        }
+    });
+
+    if (values.length === 0) return;
+
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+
+    terrains.forEach(t => {
+        const val = rawValues[criterionId][t.id];
+        let note = 5; // valor padrão se min==max
+        if (max !== min) {
+            if (direction === 'lower') {
+                note = 10 * (1 - (val - min) / (max - min));
+            } else { // higher
+                note = 10 * (val - min) / (max - min);
+            }
+        }
+        // Arredondar para 1 casa decimal
+        scores[criterionId][t.id] = Math.round(note * 10) / 10;
+    });
+}
+
+// ============================================
+// Renderização dos critérios com botões de normalização
+// ============================================
 function renderCriteria() {
     let html = '';
     criteria.forEach(c => {
+        const norm = c.normalization || { mode: 'manual' };
+        const isManual = norm.mode === 'manual';
+        const isRawLower = norm.mode === 'raw' && norm.direction === 'lower';
+        const isRawHigher = norm.mode === 'raw' && norm.direction === 'higher';
+
         html += `
             <div class="item-row" data-id="${c.id}">
                 <span class="item-name" data-field="name">${c.name}</span>
                 <input type="number" class="item-weight" min="0" max="100" value="${c.weight}" step="1" title="Peso em porcentagem">
-                <button class="btn-icon edit-item" title="Editar nome"><i data-feather="edit-2"></i></button>
+                <button class="btn-icon normalize-manual ${isManual ? 'active' : ''}" title="Nota manual"><i data-feather="edit-3"></i></button>
+                <button class="btn-icon normalize-lower ${isRawLower ? 'active' : ''}" title="Menor melhor (valor bruto)"><i data-feather="arrow-down"></i></button>
+                <button class="btn-icon normalize-higher ${isRawHigher ? 'active' : ''}" title="Maior melhor (valor bruto)"><i data-feather="arrow-up"></i></button>
                 <button class="btn-icon remove-item" title="Remover critério"><i data-feather="trash-2"></i></button>
             </div>
         `;
@@ -254,14 +304,60 @@ function renderCriteria() {
             const criterion = criteria.find(c => c.id === id);
             if (criterion) {
                 criterion.weight = newWeight;
-                if (newWeight < 0 || newWeight > 100) {
-                    this.classList.add('error');
-                } else {
-                    this.classList.remove('error');
-                }
+                if (newWeight < 0 || newWeight > 100) this.classList.add('error');
+                else this.classList.remove('error');
             }
             validateWeights();
             updateAll();
+        });
+    });
+
+    // Eventos de normalização
+    document.querySelectorAll('#criteria-list .normalize-manual').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.closest('.item-row').dataset.id;
+            const criterion = criteria.find(c => c.id === id);
+            if (criterion) {
+                criterion.normalization = { mode: 'manual' };
+                renderCriteria(); // re-render para atualizar botões ativos
+                renderScoresTable(); // atualiza tabela
+                updateChartsAndRanking();
+            }
+        });
+    });
+
+    document.querySelectorAll('#criteria-list .normalize-lower').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.closest('.item-row').dataset.id;
+            const criterion = criteria.find(c => c.id === id);
+            if (criterion) {
+                criterion.normalization = { mode: 'raw', direction: 'lower' };
+                // Inicializar rawValues se necessário
+                terrains.forEach(t => {
+                    if (rawValues[id][t.id] === undefined) rawValues[id][t.id] = 0;
+                });
+                recalculateNormalizedScores(id);
+                renderCriteria();
+                renderScoresTable();
+                updateChartsAndRanking();
+            }
+        });
+    });
+
+    document.querySelectorAll('#criteria-list .normalize-higher').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.closest('.item-row').dataset.id;
+            const criterion = criteria.find(c => c.id === id);
+            if (criterion) {
+                criterion.normalization = { mode: 'raw', direction: 'higher' };
+                terrains.forEach(t => {
+                    if (rawValues[id][t.id] === undefined) rawValues[id][t.id] = 0;
+                });
+                recalculateNormalizedScores(id);
+                renderCriteria();
+                renderScoresTable();
+                updateChartsAndRanking();
+            }
         });
     });
 
@@ -318,7 +414,7 @@ function renderCriteria() {
     refreshFeather();
 }
 
-// Renderiza lista de terrenos com edição inline
+// Renderiza lista de terrenos (sem alterações)
 function renderTerrains() {
     let html = '';
     terrains.forEach(t => {
@@ -386,6 +482,7 @@ function renderTerrains() {
 function removeCriterion(id) {
     criteria = criteria.filter(c => c.id !== id);
     delete scores[id];
+    delete rawValues[id];
     updateAll();
 }
 
@@ -393,6 +490,7 @@ function removeTerrain(id) {
     terrains = terrains.filter(t => t.id !== id);
     criteria.forEach(c => {
         delete scores[c.id][id];
+        delete rawValues[c.id][id];
     });
     updateAll();
 }
@@ -401,10 +499,12 @@ function addCriterion() {
     const newId = generateId('c');
     const newName = prompt('Nome do novo critério:');
     if (!newName) return;
-    criteria.push({ id: newId, name: newName, weight: 10 });
+    criteria.push({ id: newId, name: newName, weight: 10, normalization: { mode: 'manual' } });
     scores[newId] = {};
+    rawValues[newId] = {};
     terrains.forEach(t => {
         scores[newId][t.id] = 5;
+        rawValues[newId][t.id] = 0;
     });
     updateAll();
 }
@@ -416,6 +516,7 @@ function addTerrain() {
     terrains.push({ id: newId, name: name });
     criteria.forEach(c => {
         scores[c.id][newId] = 5;
+        rawValues[c.id][newId] = 0;
     });
     updateAll();
 }
@@ -432,6 +533,9 @@ function validateWeights() {
     }
 }
 
+// ============================================
+// Renderização da tabela de notas/valores brutos
+// ============================================
 function renderScoresTable() {
     // Cabeçalho
     let theadHtml = '<tr><th>Critério / Terreno</th>';
@@ -446,15 +550,29 @@ function renderScoresTable() {
     criteria.forEach(c => {
         tbodyHtml += '<tr>';
         tbodyHtml += `<td>${c.name}</td>`;
+
+        const norm = c.normalization || { mode: 'manual' };
+
         terrains.forEach(t => {
-            const value = scores[c.id]?.[t.id] ?? 5;
-            tbodyHtml += `<td><input type="number" min="0" max="10" step="0.1" value="${value}" class="score-input" data-criterion="${c.id}" data-terrain="${t.id}" title="Nota de 0 a 10"></td>`;
+            if (norm.mode === 'raw') {
+                // Modo valor bruto
+                const rawVal = rawValues[c.id]?.[t.id] ?? 0;
+                const note = scores[c.id]?.[t.id] ?? 5;
+                tbodyHtml += `<td class="raw-cell">
+                    <input type="number" class="raw-input" step="any" value="${rawVal}" data-criterion="${c.id}" data-terrain="${t.id}" title="Valor bruto">
+                    <span class="calc-note">(${note.toFixed(1)})</span>
+                </td>`;
+            } else {
+                // Modo manual
+                const note = scores[c.id]?.[t.id] ?? 5;
+                tbodyHtml += `<td><input type="number" min="0" max="10" step="0.1" value="${note}" class="score-input" data-criterion="${c.id}" data-terrain="${t.id}" title="Nota de 0 a 10"></td>`;
+            }
         });
         tbodyHtml += '</tr>';
     });
     scoresTbody.innerHTML = tbodyHtml;
 
-    // Eventos
+    // Eventos para inputs manuais
     document.querySelectorAll('.score-input').forEach(input => {
         input.addEventListener('input', function(e) {
             const criterionId = this.dataset.criterion;
@@ -470,9 +588,33 @@ function renderScoresTable() {
         });
     });
 
+    // Eventos para inputs brutos
+    document.querySelectorAll('.raw-input').forEach(input => {
+        input.addEventListener('input', function(e) {
+            const criterionId = this.dataset.criterion;
+            const terrainId = this.dataset.terrain;
+            const val = parseFloat(e.target.value);
+            if (!isNaN(val)) {
+                rawValues[criterionId][terrainId] = val;
+                // Recalcula todas as notas desse critério
+                recalculateNormalizedScores(criterionId);
+                // Atualiza a exibição da nota ao lado
+                const cell = this.closest('td');
+                const noteSpan = cell.querySelector('.calc-note');
+                if (noteSpan) {
+                    noteSpan.textContent = `(${scores[criterionId][terrainId].toFixed(1)})`;
+                }
+                updateChartsAndRanking();
+            }
+        });
+    });
+
     refreshFeather();
 }
 
+// ============================================
+// Cálculos e gráficos (sem alterações)
+// ============================================
 function calculateFinalScores() {
     const final = {};
     terrains.forEach(t => {
@@ -494,7 +636,7 @@ function renderRanking(finalScores) {
         let medalIcon = '';
         if (index === 0) medalIcon = '<i data-feather="award" style="stroke: gold;"></i>';
         else if (index === 1) medalIcon = '<i data-feather="award" style="stroke: silver;"></i>';
-        else if (index === 2) medalIcon = '<i data-feather="award" style="stroke: #cd7f32;"></i>'; // bronze
+        else if (index === 2) medalIcon = '<i data-feather="award" style="stroke: #cd7f32;"></i>';
         html += `<div class="ranking-item">${medalIcon} ${item.name} <span>${item.score.toFixed(2)}</span></div>`;
     });
     rankingListDiv.innerHTML = html;
@@ -505,7 +647,6 @@ function updateCharts(finalScores) {
     const terrainNames = terrains.map(t => t.name);
     const scoresArray = terrains.map(t => finalScores[t.id].score);
 
-    // Bar chart
     if (barChart) barChart.destroy();
     const barCtx = document.getElementById('bar-chart').getContext('2d');
     barChart = new Chart(barCtx, {
@@ -527,7 +668,6 @@ function updateCharts(finalScores) {
         }
     });
 
-    // Radar chart
     if (criteria.length === 0) {
         if (radarChart) radarChart.destroy();
         return;
@@ -582,7 +722,7 @@ function updateAll() {
 }
 
 // ============================================
-// Exportação PDF
+// Exportações (PDF e XLSX) - mantidas iguais
 // ============================================
 async function exportToPDF() {
     const { jsPDF } = window.jspdf;
@@ -631,14 +771,17 @@ async function exportToPDF() {
     doc.save('analise_ponderada.pdf');
 }
 
-// ============================================
-// Exportação XLSX
-// ============================================
 function exportToXLSX() {
     const wb = XLSX.utils.book_new();
 
-    const criteriaData = [['Critério', 'Peso (%)']];
-    criteria.forEach(c => criteriaData.push([c.name, c.weight]));
+    const criteriaData = [['Critério', 'Peso (%)', 'Modo']];
+    criteria.forEach(c => {
+        let modo = 'Manual';
+        if (c.normalization.mode === 'raw') {
+            modo = c.normalization.direction === 'lower' ? 'Menor melhor' : 'Maior melhor';
+        }
+        criteriaData.push([c.name, c.weight, modo]);
+    });
     const wsCriteria = XLSX.utils.aoa_to_sheet(criteriaData);
     XLSX.utils.book_append_sheet(wb, wsCriteria, 'Critérios');
 
