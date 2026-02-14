@@ -38,6 +38,7 @@ const rankingListDiv = document.getElementById('ranking-list');
 const addCriterionBtn = document.getElementById('add-criterion');
 const addTerrainBtn = document.getElementById('add-terrain');
 const exportPdfBtn = document.getElementById('export-pdf');
+const exportXlsxBtn = document.getElementById('export-xlsx');
 const weightWarning = document.getElementById('weight-warning');
 const tabLearn = document.getElementById('tab-learn');
 const tabSimulator = document.getElementById('tab-simulator');
@@ -52,16 +53,23 @@ function generateId(prefix) {
     return prefix + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
 }
 
-// Renderiza lista de critérios com opção de editar nome
+// Feather Icons - atualiza após mudanças no DOM
+function refreshFeather() {
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+}
+
+// Renderiza lista de critérios com edição inline
 function renderCriteria() {
     let html = '';
     criteria.forEach(c => {
         html += `
             <div class="item-row" data-id="${c.id}">
                 <span class="item-name" data-field="name">${c.name}</span>
-                <input type="number" class="item-weight" min="0" max="100" value="${c.weight}" step="1" title="Peso %">
-                <button class="btn-icon edit-item" title="Editar nome">✏️</button>
-                <button class="btn-icon remove-item" title="Remover">🗑️</button>
+                <input type="number" class="item-weight" min="0" max="100" value="${c.weight}" step="1" title="Peso em porcentagem">
+                <button class="btn-icon edit-item" title="Editar nome"><i data-feather="edit-2"></i></button>
+                <button class="btn-icon remove-item" title="Remover critério"><i data-feather="trash-2"></i></button>
             </div>
         `;
     });
@@ -73,27 +81,61 @@ function renderCriteria() {
             const id = this.closest('.item-row').dataset.id;
             const newWeight = parseInt(e.target.value) || 0;
             const criterion = criteria.find(c => c.id === id);
-            if (criterion) criterion.weight = newWeight;
+            if (criterion) {
+                criterion.weight = newWeight;
+                // validação visual
+                if (newWeight < 0 || newWeight > 100) {
+                    this.classList.add('error');
+                } else {
+                    this.classList.remove('error');
+                }
+            }
             validateWeights();
             updateAll();
         });
     });
 
-    // Eventos de editar nome
+    // Eventos de editar nome (inline)
     document.querySelectorAll('#criteria-list .edit-item').forEach(btn => {
         btn.addEventListener('click', function() {
             const row = this.closest('.item-row');
             const id = row.dataset.id;
             const nameSpan = row.querySelector('.item-name');
             const currentName = nameSpan.innerText;
-            const newName = prompt('Editar nome do critério:', currentName);
-            if (newName && newName.trim() !== '') {
-                const criterion = criteria.find(c => c.id === id);
-                if (criterion) criterion.name = newName.trim();
-                renderCriteria(); // re-renderiza para atualizar nome
+
+            // Substitui o span por um input
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = currentName;
+            input.className = 'item-input';
+            input.setAttribute('data-id', id);
+
+            nameSpan.replaceWith(input);
+            input.focus();
+
+            const saveEdit = () => {
+                const newName = input.value.trim();
+                if (newName) {
+                    const criterion = criteria.find(c => c.id === id);
+                    if (criterion) criterion.name = newName;
+                }
+                // Volta ao span
+                const newSpan = document.createElement('span');
+                newSpan.className = 'item-name';
+                newSpan.innerText = newName || currentName;
+                input.replaceWith(newSpan);
                 renderScoresTable(); // atualiza tabela
                 updateChartsAndRanking();
-            }
+                refreshFeather();
+            };
+
+            input.addEventListener('blur', saveEdit);
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    saveEdit();
+                }
+            });
         });
     });
 
@@ -104,17 +146,19 @@ function renderCriteria() {
             removeCriterion(id);
         });
     });
+
+    refreshFeather();
 }
 
-// Renderiza lista de terrenos com opção de editar nome
+// Renderiza lista de terrenos com edição inline
 function renderTerrains() {
     let html = '';
     terrains.forEach(t => {
         html += `
             <div class="item-row" data-id="${t.id}">
-                <span class="item-name">Terreno ${t.name}</span>
-                <button class="btn-icon edit-item" title="Editar nome">✏️</button>
-                <button class="btn-icon remove-item" title="Remover">🗑️</button>
+                <span class="item-name">${t.name}</span>
+                <button class="btn-icon edit-item" title="Editar nome"><i data-feather="edit-2"></i></button>
+                <button class="btn-icon remove-item" title="Remover terreno"><i data-feather="trash-2"></i></button>
             </div>
         `;
     });
@@ -125,15 +169,39 @@ function renderTerrains() {
             const row = this.closest('.item-row');
             const id = row.dataset.id;
             const nameSpan = row.querySelector('.item-name');
-            const currentName = nameSpan.innerText.replace('Terreno ', '');
-            const newName = prompt('Editar nome do terreno:', currentName);
-            if (newName && newName.trim() !== '') {
-                const terrain = terrains.find(t => t.id === id);
-                if (terrain) terrain.name = newName.trim();
-                renderTerrains();
+            const currentName = nameSpan.innerText;
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = currentName;
+            input.className = 'item-input';
+            input.setAttribute('data-id', id);
+
+            nameSpan.replaceWith(input);
+            input.focus();
+
+            const saveEdit = () => {
+                const newName = input.value.trim();
+                if (newName) {
+                    const terrain = terrains.find(t => t.id === id);
+                    if (terrain) terrain.name = newName;
+                }
+                const newSpan = document.createElement('span');
+                newSpan.className = 'item-name';
+                newSpan.innerText = newName || currentName;
+                input.replaceWith(newSpan);
                 renderScoresTable();
                 updateChartsAndRanking();
-            }
+                refreshFeather();
+            };
+
+            input.addEventListener('blur', saveEdit);
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    saveEdit();
+                }
+            });
         });
     });
 
@@ -143,6 +211,8 @@ function renderTerrains() {
             removeTerrain(id);
         });
     });
+
+    refreshFeather();
 }
 
 function removeCriterion(id) {
@@ -210,7 +280,7 @@ function renderScoresTable() {
         tbodyHtml += `<td>${c.name}</td>`;
         terrains.forEach(t => {
             const value = scores[c.id]?.[t.id] ?? 5;
-            tbodyHtml += `<td><input type="number" min="0" max="10" step="0.1" value="${value}" class="score-input" data-criterion="${c.id}" data-terrain="${t.id}"></td>`;
+            tbodyHtml += `<td><input type="number" min="0" max="10" step="0.1" value="${value}" class="score-input" data-criterion="${c.id}" data-terrain="${t.id}" title="Nota de 0 a 10"></td>`;
         });
         tbodyHtml += '</tr>';
     });
@@ -224,10 +294,15 @@ function renderScoresTable() {
             const val = parseFloat(e.target.value);
             if (!isNaN(val) && val >= 0 && val <= 10) {
                 scores[criterionId][terrainId] = val;
+                this.classList.remove('error');
+            } else {
+                this.classList.add('error');
             }
             updateChartsAndRanking();
         });
     });
+
+    refreshFeather();
 }
 
 function calculateFinalScores() {
@@ -248,13 +323,14 @@ function renderRanking(finalScores) {
     const sorted = Object.values(finalScores).sort((a, b) => b.score - a.score);
     let html = '';
     sorted.forEach((item, index) => {
-        let medal = '';
-        if (index === 0) medal = '🥇 ';
-        else if (index === 1) medal = '🥈 ';
-        else if (index === 2) medal = '🥉 ';
-        html += `<div class="ranking-item">${medal}${item.name} <span>${item.score.toFixed(2)}</span></div>`;
+        let medalIcon = '';
+        if (index === 0) medalIcon = '<i data-feather="award" style="stroke: gold;"></i>';
+        else if (index === 1) medalIcon = '<i data-feather="award" style="stroke: silver;"></i>';
+        else if (index === 2) medalIcon = '<i data-feather="award" style="stroke: #cd7f32;"></i>'; // bronze
+        html += `<div class="ranking-item">${medalIcon} ${item.name} <span>${item.score.toFixed(2)}</span></div>`;
     });
     rankingListDiv.innerHTML = html;
+    refreshFeather();
 }
 
 function updateCharts(finalScores) {
@@ -337,7 +413,7 @@ function updateAll() {
     updateChartsAndRanking();
 }
 
-// Exportar PDF
+// Exportar PDF (já existente, mantido)
 async function exportToPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('p', 'mm', 'a4');
@@ -388,12 +464,44 @@ async function exportToPDF() {
     doc.save('analise_ponderada.pdf');
 }
 
+// Exportar XLSX
+function exportToXLSX() {
+    // Criar uma planilha com múltiplas abas
+    const wb = XLSX.utils.book_new();
+
+    // Aba 1: Critérios e pesos
+    const criteriaData = [['Critério', 'Peso (%)']];
+    criteria.forEach(c => criteriaData.push([c.name, c.weight]));
+    const wsCriteria = XLSX.utils.aoa_to_sheet(criteriaData);
+    XLSX.utils.book_append_sheet(wb, wsCriteria, 'Critérios');
+
+    // Aba 2: Notas
+    const notesData = [['Critério', ...terrains.map(t => t.name)]];
+    criteria.forEach(c => {
+        const row = [c.name, ...terrains.map(t => scores[c.id]?.[t.id] ?? 5)];
+        notesData.push(row);
+    });
+    const wsNotes = XLSX.utils.aoa_to_sheet(notesData);
+    XLSX.utils.book_append_sheet(wb, wsNotes, 'Notas');
+
+    // Aba 3: Pontuação final
+    const finalScores = calculateFinalScores();
+    const finalData = [['Terreno', 'Pontuação']];
+    terrains.forEach(t => finalData.push([t.name, finalScores[t.id].score]));
+    const wsFinal = XLSX.utils.aoa_to_sheet(finalData);
+    XLSX.utils.book_append_sheet(wb, wsFinal, 'Resultado');
+
+    // Exportar
+    XLSX.writeFile(wb, 'analise_ponderada.xlsx');
+}
+
 // Eventos de abas
 tabLearn.addEventListener('click', () => {
     tabLearn.classList.add('active');
     tabSimulator.classList.remove('active');
     learnContent.classList.add('active');
     simulatorContent.classList.remove('active');
+    refreshFeather();
 });
 
 tabSimulator.addEventListener('click', () => {
@@ -401,14 +509,18 @@ tabSimulator.addEventListener('click', () => {
     tabLearn.classList.remove('active');
     simulatorContent.classList.add('active');
     learnContent.classList.remove('active');
-    // Ao mostrar o simulador, garantimos que os gráficos sejam renderizados corretamente
-    setTimeout(() => updateChartsAndRanking(), 100);
+    setTimeout(() => {
+        updateChartsAndRanking();
+        refreshFeather();
+    }, 100);
 });
 
 // Event listeners principais
 addCriterionBtn.addEventListener('click', addCriterion);
 addTerrainBtn.addEventListener('click', addTerrain);
 exportPdfBtn.addEventListener('click', exportToPDF);
+exportXlsxBtn.addEventListener('click', exportToXLSX);
 
 // Inicialização
 updateAll();
+refreshFeather();
