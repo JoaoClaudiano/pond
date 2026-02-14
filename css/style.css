@@ -33,6 +33,16 @@ h1 {
     font-size: 2rem;
     font-weight: 700;
     letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+h1 svg {
+    width: 2rem;
+    height: 2rem;
+    stroke: #3b82f6;
 }
 
 .accent {
@@ -65,6 +75,16 @@ h1 {
     border-radius: 2rem 2rem 0 0;
     cursor: pointer;
     transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+}
+
+.tab-btn svg {
+    width: 1.2rem;
+    height: 1.2rem;
+    stroke: currentColor;
 }
 
 .tab-btn.active {
@@ -106,6 +126,15 @@ h1 {
     font-weight: 600;
     margin-bottom: 0.75rem;
     color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.card h3 svg {
+    width: 1.2rem;
+    height: 1.2rem;
+    stroke: #3b82f6;
 }
 
 .card p, .card li {
@@ -122,6 +151,9 @@ h1 {
     font-size: 1.6rem;
     font-weight: 600;
     margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .simulator-intro {
@@ -140,6 +172,9 @@ h1 {
     font-weight: 600;
     margin-bottom: 1rem;
     font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .dynamic-list {
@@ -167,6 +202,21 @@ h1 {
     word-break: break-word;
 }
 
+.item-name.editing {
+    display: none;
+}
+
+.item-input {
+    flex: 1 1 auto;
+    padding: 0.3rem 0.8rem;
+    border: 1px solid #3b82f6;
+    border-radius: 2rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    outline: none;
+    min-width: 120px;
+}
+
 .item-weight {
     width: 70px;
     padding: 0.3rem 0.5rem;
@@ -179,11 +229,20 @@ h1 {
 .btn-icon {
     background: none;
     border: none;
-    font-size: 1.2rem;
     cursor: pointer;
-    color: #64748b;
     padding: 0.2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
     transition: color 0.2s;
+    position: relative;
+}
+
+.btn-icon svg {
+    width: 1.2rem;
+    height: 1.2rem;
+    stroke: currentColor;
 }
 
 .btn-icon:hover {
@@ -194,6 +253,42 @@ h1 {
     color: #dc2626;
 }
 
+/* Tooltips */
+[title] {
+    position: relative;
+    cursor: help;
+}
+
+[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1e293b;
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 0.5rem;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    z-index: 1000;
+    pointer-events: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+[title]:hover::before {
+    content: '';
+    position: absolute;
+    bottom: 115%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: #1e293b transparent transparent transparent;
+    z-index: 1000;
+}
+
+/* Botões */
 .btn {
     padding: 0.6rem 1.2rem;
     border-radius: 3rem;
@@ -205,6 +300,12 @@ h1 {
     display: inline-flex;
     align-items: center;
     gap: 0.3rem;
+}
+
+.btn svg {
+    width: 1rem;
+    height: 1rem;
+    stroke: currentColor;
 }
 
 .btn-secondary {
@@ -225,6 +326,13 @@ h1 {
 
 .btn-primary:hover {
     background: #2563eb;
+}
+
+.export-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
 }
 
 .warning {
@@ -253,6 +361,9 @@ h1 {
 .scores-panel h3 {
     margin-bottom: 1rem;
     font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .scores-table-wrapper {
@@ -300,6 +411,11 @@ h1 {
     box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
 }
 
+.score-input.error {
+    border-color: #dc2626;
+    background: #fee2e2;
+}
+
 /* Resultados */
 .results-panel {
     background: white;
@@ -315,6 +431,9 @@ h1 {
 .ranking h4 {
     font-weight: 600;
     margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .ranking-list {
@@ -329,12 +448,21 @@ h1 {
     border-radius: 3rem;
     font-weight: 500;
     font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.ranking-item svg {
+    width: 1rem;
+    height: 1rem;
+    stroke: #3b82f6;
 }
 
 .ranking-item span {
     color: #3b82f6;
     font-weight: 700;
-    margin-left: 0.4rem;
+    margin-left: 0.2rem;
 }
 
 .charts {
@@ -364,7 +492,7 @@ footer {
     font-size: 0.8rem;
 }
 
-/* Media queries para telas maiores */
+/* Media queries */
 @media (min-width: 640px) {
     body {
         padding: 2rem;
@@ -378,7 +506,7 @@ footer {
     }
     .item-row {
         flex: 1 1 auto;
-        min-width: 200px;
+        min-width: 220px;
     }
     .charts {
         flex-direction: row;
