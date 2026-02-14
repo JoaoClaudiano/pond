@@ -528,3 +528,18 @@ footer {
         min-width: 250px;
     }
 }
+/* Guia e Exemplos */
+.guide-section, .examples-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.guide-section h2, .examples-section h2 {
+    font-size: 1.6rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
